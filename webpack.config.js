@@ -3,14 +3,14 @@ const CopyPlugin = require('copy-webpack-plugin');
 const HtmlPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  entry: './src/main.js',
+  entry: './src/main.js', // Точка входа
   output: {
-    filename: 'bundle.[contenthash].js',
-    path: path.resolve(__dirname, 'build'),
-    clean: true,
+    filename: 'bundle.[contenthash].js', // Имя бандла
+    path: path.resolve(__dirname, 'build'), // Директория для файлов сборки
+    clean: true, // Удаляем предыдущую сборку перед созданием новой
   },
-  devtool: 'source-map',
-  plugins: [
+  devtool: 'source-map', // Генерируем карту исходного кода
+  plugins: [ // Подключаем плагины
     new HtmlPlugin({
       template: 'public/index.html',
     }),
@@ -26,7 +26,7 @@ module.exports = {
     }),
   ],
   module: {
-    rules: [
+    rules: [ // Добавляем лоадеры
       {
         test: /\.js$/,
         exclude: /(node_modules)/,
@@ -37,6 +37,10 @@ module.exports = {
           },
         },
       },
-    ]
-  }
+      {
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader']
+      },
+    ],
+  },
 };

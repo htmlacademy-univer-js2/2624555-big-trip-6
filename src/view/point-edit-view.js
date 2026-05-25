@@ -4,7 +4,15 @@ import flatpickr from 'flatpickr';
 
 const DATE_FORMAT = 'd/m/y H:i';
 
+const FormUiState = {
+  IDLE: 'idle',
+  SAVING: 'saving',
+  DELETING: 'deleting',
+};
+
 export default class PointEditView extends AbstractStatefulView {
+  #uiState = FormUiState.IDLE;
+
   #submitHandler = null;
 
   #deleteHandler = null;
@@ -74,6 +82,20 @@ export default class PointEditView extends AbstractStatefulView {
   removeElement() {
     this.#destroyDatepickers();
     super.removeElement();
+  }
+
+  setSaving() {
+    this.#setUiState(FormUiState.SAVING);
+  }
+
+  setDeleting() {
+    this.#setUiState(FormUiState.DELETING);
+  }
+
+  setAborting() {
+    this.shake(() => {
+      this.#setUiState(FormUiState.IDLE);
+    });
   }
 
   #handleTypeChange = (event) => {
@@ -175,5 +197,21 @@ export default class PointEditView extends AbstractStatefulView {
     this.#endDatepicker?.destroy();
     this.#startDatepicker = null;
     this.#endDatepicker = null;
+  }
+
+  #setUiState(uiState) {
+    this.#uiState = uiState;
+
+    const formElement = this.getElement().querySelector('form');
+    const saveButton = formElement.querySelector('.event__save-btn');
+    const deleteButton = formElement.querySelector('.event__reset-btn');
+    const isDisabled = this.#uiState !== FormUiState.IDLE;
+
+    formElement.querySelectorAll('input, button').forEach((control) => {
+      control.disabled = isDisabled;
+    });
+
+    saveButton.textContent = this.#uiState === FormUiState.SAVING ? 'Saving...' : 'Save';
+    deleteButton.textContent = this.#uiState === FormUiState.DELETING ? 'Deleting...' : 'Delete';
   }
 }

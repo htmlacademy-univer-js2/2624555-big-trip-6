@@ -94,27 +94,22 @@ export default class TripPresenter {
     this.#renderBoard();
   }
 
-  #handlePointDataChange = (actionType, update) => {
+  #handlePointDataChange = async (actionType, update) => {
     switch (actionType) {
       case UserAction.UPDATE_POINT:
-        return this.model.updatePoint(update)
-          .then(() => {
-            this.#isCreationFormOpen = false;
-            this.#renderBoard();
-            this.filterPresenter.init();
-          })
-          .catch(() => {});
+        await this.model.updatePoint(update);
+        break;
       case UserAction.DELETE_POINT:
-        this.model.deletePoint(update.id);
+        await this.model.deletePoint(update.id);
         break;
       case UserAction.ADD_POINT:
-        this.model.addPoint(update);
+        await this.model.addPoint(update);
+        this.#isCreationFormOpen = false;
         break;
       default:
-        break;
+        return;
     }
 
-    this.#isCreationFormOpen = false;
     this.#renderBoard();
     this.filterPresenter.init();
   };
@@ -146,7 +141,7 @@ export default class TripPresenter {
     this.filterPresenter.init();
   };
 
-  #handleCreationFormSubmit = (event) => {
+  #handleCreationFormSubmit = async (event) => {
     event.preventDefault();
 
     const formData = this.#creationFormComponent.getFormData();
@@ -155,7 +150,13 @@ export default class TripPresenter {
       return;
     }
 
-    this.#handlePointDataChange(UserAction.ADD_POINT, formData.point);
+    this.#creationFormComponent.setSaving();
+
+    try {
+      await this.#handlePointDataChange(UserAction.ADD_POINT, formData.point);
+    } catch {
+      this.#creationFormComponent.setAborting();
+    }
   };
 
   #handleCreationFormReset = (event) => {

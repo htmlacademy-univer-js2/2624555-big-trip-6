@@ -122,7 +122,6 @@ export default class PointPresenter {
       return;
     }
 
-    this.#closeEditForm();
     this.#onDataChange(UserAction.UPDATE_POINT, formData.point);
   };
 

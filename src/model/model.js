@@ -1,5 +1,10 @@
 import dayjs from 'dayjs';
-import { createMockData } from './mock-data.js';
+import {
+  adaptDestinationFromServer,
+  adaptOffersFromServer,
+  adaptPointFromServer,
+  adaptPointToServer,
+} from './adapters.js';
 
 const FILTER_TYPES = [
   { type: 'everything', label: 'Everything' },
@@ -51,13 +56,14 @@ function getFilteredPoints(points, filter) {
 export default class Model {
   #observers = [];
 
-  constructor() {
-    const mockData = createMockData();
+  #apiService = null;
 
-    this.pointTypes = mockData.pointTypes;
-    this.destinations = mockData.destinations;
-    this.offers = mockData.offers;
-    this.points = mockData.points;
+  constructor(apiService) {
+    this.#apiService = apiService;
+    this.pointTypes = [];
+    this.destinations = [];
+    this.offers = [];
+    this.points = [];
   }
 
   addObserver(observer) {
@@ -66,6 +72,22 @@ export default class Model {
 
   #notify() {
     this.#observers.forEach((observer) => observer());
+  }
+
+  async init() {
+    const [points, destinations, offers] = await Promise.all([
+      this.#apiService.getPoints(),
+      this.#apiService.getDestinations().catch(() => []),
+      this.#apiService.getOffers().catch(() => []),
+    ]);
+
+    this.points = points.map(adaptPointFromServer);
+    this.destinations = destinations.map(adaptDestinationFromServer);
+    this.offers = adaptOffersFromServer(offers);
+    this.pointTypes = Array.from(new Set([
+      ...this.points.map((point) => point.type),
+      ...this.offers.map((offer) => offer.type),
+    ]));
   }
 
   getPoints(filter = DEFAULT_FILTER) {
@@ -107,8 +129,13 @@ export default class Model {
     this.#notify();
   }
 
-  updatePoint(updatedPoint) {
-    this.setPoints(this.points.map((point) => (point.id === updatedPoint.id ? updatedPoint : point)));
+  async updatePoint(updatedPoint) {
+    const response = await this.#apiService.updatePoint(updatedPoint.id, adaptPointToServer(updatedPoint));
+    const adaptedPoint = adaptPointFromServer(response);
+
+    this.setPoints(this.points.map((point) => (point.id === adaptedPoint.id ? adaptedPoint : point)));
+
+    return adaptedPoint;
   }
 
   addPoint(newPoint) {

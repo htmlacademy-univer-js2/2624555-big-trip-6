@@ -97,8 +97,13 @@ export default class TripPresenter {
   #handlePointDataChange = (actionType, update) => {
     switch (actionType) {
       case UserAction.UPDATE_POINT:
-        this.model.updatePoint(update);
-        break;
+        return this.model.updatePoint(update)
+          .then(() => {
+            this.#isCreationFormOpen = false;
+            this.#renderBoard();
+            this.filterPresenter.init();
+          })
+          .catch(() => {});
       case UserAction.DELETE_POINT:
         this.model.deletePoint(update.id);
         break;

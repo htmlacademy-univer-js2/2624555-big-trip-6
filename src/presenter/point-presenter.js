@@ -111,10 +111,11 @@ export default class PointPresenter {
       isFavorite: !this.#point.isFavorite,
     };
 
-    this.#onDataChange(UserAction.UPDATE_POINT, updatedPoint);
+    this.#onDataChange(UserAction.UPDATE_POINT, updatedPoint)
+      .catch(() => {});
   };
 
-  #handleFormSubmit = (event) => {
+  #handleFormSubmit = async (event) => {
     event.preventDefault();
     const formData = this.#pointEditView.getFormData();
 
@@ -122,13 +123,25 @@ export default class PointPresenter {
       return;
     }
 
-    this.#onDataChange(UserAction.UPDATE_POINT, formData.point);
+    this.#pointEditView.setSaving();
+
+    try {
+      await this.#onDataChange(UserAction.UPDATE_POINT, formData.point);
+    } catch {
+      this.#pointEditView.setAborting();
+    }
   };
 
-  #handleFormDelete = (event) => {
+  #handleFormDelete = async (event) => {
     event.preventDefault();
-    this.#closeEditForm();
-    this.#onDataChange(UserAction.DELETE_POINT, this.#point);
+
+    this.#pointEditView.setDeleting();
+
+    try {
+      await this.#onDataChange(UserAction.DELETE_POINT, this.#point);
+    } catch {
+      this.#pointEditView.setAborting();
+    }
   };
 
   #handleFormRollupClick = () => {

@@ -13,7 +13,8 @@
   "scripts": {
     "lint": "eslint src/",
     "build": "webpack --mode production",
-    "start": "webpack serve --mode development --open"
+    "start": "webpack serve --mode development --open",
+    "archive:tracked": "sh scripts/make-tracked-archive.sh"
   },
   "dependencies": {
     "dayjs": "1.11.7",

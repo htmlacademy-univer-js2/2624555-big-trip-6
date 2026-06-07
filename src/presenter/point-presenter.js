@@ -133,7 +133,7 @@ export default class PointPresenter {
   };
 
   #handleFormDelete = async (event) => {
-    event.preventDefault();
+    event?.preventDefault?.();
 
     this.#pointEditView.setDeleting();
 
@@ -169,5 +169,16 @@ export default class PointPresenter {
     this.#pointEditView.getElement().replaceWith(this.#pointView.getElement());
     document.removeEventListener('keydown', this.#editKeyDownHandler);
     this.#mode = Mode.DEFAULT;
+    this.#pointEditView = new PointEditView({
+      point: this.#point,
+      destination: this.#destination,
+      destinations: this.#destinations,
+      offers: this.#editOffers,
+      selectedOfferIds: this.#point.offerIds,
+      pointTypes: this.#pointTypes,
+      onFormSubmit: this.#handleFormSubmit,
+      onFormDelete: this.#handleFormDelete,
+      onRollupClick: this.#handleFormRollupClick,
+    });
   }
 }

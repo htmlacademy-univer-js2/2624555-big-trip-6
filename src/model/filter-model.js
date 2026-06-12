@@ -1,4 +1,4 @@
-const DEFAULT_FILTER = 'everything';
+import { DEFAULT_FILTER } from '../const/filter-type.js';
 
 export default class FilterModel {
   #filter = DEFAULT_FILTER;

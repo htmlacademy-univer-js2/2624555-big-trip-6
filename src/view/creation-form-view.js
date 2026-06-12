@@ -1,8 +1,9 @@
 import AbstractStatefulView from './abstract-stateful-view.js';
 import { createPointFormTemplate } from './point-form-template.js';
 import flatpickr from 'flatpickr';
-
-const DATE_FORMAT = 'd/m/y H:i';
+import DateFormat from '../const/date-format.js';
+import { DESTINATION_VALIDITY_MESSAGE, FormButtonLabel } from '../const/form-button-label.js';
+import OFFER_CHECKBOX_NAME_PREFIX from '../const/offer.js';
 
 const FormUiState = {
   IDLE: 'idle',
@@ -55,8 +56,8 @@ export default class CreationFormView extends AbstractStatefulView {
       offers: this.offers,
       selectedOfferIds: this.selectedOfferIds,
       pointTypes: this.pointTypes,
-      submitLabel: 'Save',
-      resetLabel: 'Cancel',
+      submitLabel: FormButtonLabel.SAVE,
+      resetLabel: FormButtonLabel.CANCEL,
       isCreation: true,
     });
   }
@@ -115,7 +116,7 @@ export default class CreationFormView extends AbstractStatefulView {
     const nextDestination = this.destinations.find((destination) => destination.city === event.target.value) ?? null;
     const destinationInput = event.target;
 
-    destinationInput.setCustomValidity(nextDestination ? '' : 'Select a destination from the list');
+    destinationInput.setCustomValidity(nextDestination ? '' : DESTINATION_VALIDITY_MESSAGE);
 
     this.destination = nextDestination;
     this.updateElement({
@@ -124,7 +125,7 @@ export default class CreationFormView extends AbstractStatefulView {
   };
 
   #handleOfferChange = (event) => {
-    const offerId = event.target.name.replace('event-offer-', '');
+    const offerId = event.target.name.replace(OFFER_CHECKBOX_NAME_PREFIX, '');
 
     this.selectedOfferIds = event.target.checked
       ? [...this.selectedOfferIds, offerId]
@@ -151,7 +152,7 @@ export default class CreationFormView extends AbstractStatefulView {
     const destination = this.destinations.find((item) => item.city === destinationInput.value) ?? null;
 
     if (!destination) {
-      destinationInput.setCustomValidity('Select a destination from the list');
+      destinationInput.setCustomValidity(DESTINATION_VALIDITY_MESSAGE);
       destinationInput.reportValidity();
 
       return null;
@@ -164,7 +165,7 @@ export default class CreationFormView extends AbstractStatefulView {
         ...this.point,
         type: selectedTypeInput?.value ?? this.point.type,
         destinationId: destination.id,
-        offerIds: Array.from(this._element.querySelectorAll('.event__offer-checkbox:checked')).map((input) => input.name.replace('event-offer-', '')),
+        offerIds: Array.from(this._element.querySelectorAll('.event__offer-checkbox:checked')).map((input) => input.name.replace(OFFER_CHECKBOX_NAME_PREFIX, '')),
         dateFrom: this.#startDatepicker?.selectedDates?.[0]?.toISOString() ?? this.point.dateFrom,
         dateTo: this.#endDatepicker?.selectedDates?.[0]?.toISOString() ?? this.point.dateTo,
         basePrice: priceInput.value === '' ? 0 : Number(priceInput.value),
@@ -179,7 +180,7 @@ export default class CreationFormView extends AbstractStatefulView {
     const endDateInput = this._element.querySelector('.event__input--time[name="event-end-time"]');
 
     this.#startDatepicker = flatpickr(startDateInput, {
-      dateFormat: DATE_FORMAT,
+      dateFormat: DateFormat.FLATPICKR_DATE_TIME,
       defaultDate: this.point.dateFrom,
       enableTime: true,
       'time_24hr': true,
@@ -193,7 +194,7 @@ export default class CreationFormView extends AbstractStatefulView {
     });
 
     this.#endDatepicker = flatpickr(endDateInput, {
-      dateFormat: DATE_FORMAT,
+      dateFormat: DateFormat.FLATPICKR_DATE_TIME,
       defaultDate: this.point.dateTo,
       enableTime: true,
       'time_24hr': true,
@@ -225,6 +226,6 @@ export default class CreationFormView extends AbstractStatefulView {
       control.disabled = isDisabled;
     });
 
-    saveButton.textContent = this.#uiState === FormUiState.SAVING ? 'Saving...' : 'Save';
+    saveButton.textContent = this.#uiState === FormUiState.SAVING ? FormButtonLabel.SAVING : FormButtonLabel.SAVE;
   }
 }

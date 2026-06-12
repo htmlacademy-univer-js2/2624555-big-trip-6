@@ -6,6 +6,10 @@ import PointPresenter from './point-presenter.js';
 import UserAction from './user-action.js';
 import { RenderPosition, render } from '../render.js';
 import TripInfoView from '../view/trip-info-view.js';
+import { FilterType } from '../const/filter-type.js';
+import KeyboardKey from '../const/keyboard-key.js';
+import { DEFAULT_POINT_TYPE, PointType } from '../const/point-type.js';
+import { MAX_DESTINATIONS_IN_TITLE, TITLE_ELLIPSIS, TITLE_SEPARATOR } from '../const/trip-title.js';
 
 const SortType = {
   DAY: 'day',
@@ -16,10 +20,10 @@ const SortType = {
 };
 
 const EMPTY_LIST_MESSAGES = {
-  everything: 'Click New Event to create your first point',
-  future: 'There are no future events now',
-  present: 'There are no present events now',
-  past: 'There are no past events now',
+  [FilterType.EVERYTHING]: 'Click New Event to create your first point',
+  [FilterType.FUTURE]: 'There are no future events now',
+  [FilterType.PRESENT]: 'There are no present events now',
+  [FilterType.PAST]: 'There are no past events now',
 };
 
 function sortByDay(firstPoint, secondPoint) {
@@ -38,7 +42,7 @@ function sortByPrice(firstPoint, secondPoint) {
 }
 
 function createDefaultPoint(pointTypes) {
-  const defaultType = pointTypes.includes('flight') ? 'flight' : (pointTypes[0] ?? 'flight');
+  const defaultType = pointTypes.includes(PointType.FLIGHT) ? PointType.FLIGHT : (pointTypes[0] ?? DEFAULT_POINT_TYPE);
 
   return {
     id: `new-point-${Date.now()}`,
@@ -137,7 +141,7 @@ export default class TripPresenter {
       return;
     }
 
-    this.filterModel.setFilter('everything');
+    this.filterModel.setFilter(FilterType.EVERYTHING);
     this.#currentSortType = SortType.DAY;
     this.#isCreationFormOpen = true;
     this.newEventButton.disabled = true;
@@ -178,7 +182,7 @@ export default class TripPresenter {
   };
 
   #handleCreationFormKeyDown = (event) => {
-    if (event.key !== 'Escape') {
+    if (event.key !== KeyboardKey.ESCAPE) {
       return;
     }
 
@@ -230,7 +234,7 @@ export default class TripPresenter {
   }
 
   #updateTripInfo() {
-    const allPoints = [...(this.model.points ?? this.model.getPoints?.('everything') ?? [])].sort((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom));
+    const allPoints = [...(this.model.points ?? this.model.getPoints?.(FilterType.EVERYTHING) ?? [])].sort((a, b) => new Date(a.dateFrom) - new Date(b.dateFrom));
 
     const existingStatic = this.tripMainContainer?.querySelector('.trip-main__trip-info');
 
@@ -251,10 +255,10 @@ export default class TripPresenter {
     const uniqueNames = Array.from(new Set(destinationNames));
 
     let title = '';
-    if (uniqueNames.length <= 3) {
-      title = uniqueNames.join(' &mdash; ');
+    if (uniqueNames.length <= MAX_DESTINATIONS_IN_TITLE) {
+      title = uniqueNames.join(TITLE_SEPARATOR);
     } else {
-      title = `${uniqueNames[0]} &mdash; ... &mdash; ${uniqueNames[uniqueNames.length - 1]}`;
+      title = `${uniqueNames[0]}${TITLE_SEPARATOR}${TITLE_ELLIPSIS}${TITLE_SEPARATOR}${uniqueNames[uniqueNames.length - 1]}`;
     }
 
     const total = (this.model.points ?? []).reduce((sum, point) => {
@@ -277,7 +281,7 @@ export default class TripPresenter {
   }
 
   #renderCreationForm() {
-    const creationPoint = createDefaultPoint(this.#pointTypes, this.#destinations);
+    const creationPoint = createDefaultPoint(this.#pointTypes);
     const creationDestination = this.#destinations.find((destination) => destination.id === creationPoint.destinationId) ?? null;
 
     this.#creationFormComponent = new CreationFormView({
@@ -376,6 +380,6 @@ export default class TripPresenter {
   }
 
   #getEmptyMessage(filterType) {
-    return EMPTY_LIST_MESSAGES[filterType] ?? EMPTY_LIST_MESSAGES.everything;
+    return EMPTY_LIST_MESSAGES[filterType] ?? EMPTY_LIST_MESSAGES[FilterType.EVERYTHING];
   }
 }

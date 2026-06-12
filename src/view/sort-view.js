@@ -1,11 +1,12 @@
 import View from './view.js';
+import { escapeHtml } from '../utils/text-utils.js';
 
 function createSortTemplate(sortOptions) {
   return (
     `<form class="trip-events__trip-sort  trip-sort" action="#" method="get">
-${sortOptions.map((sortOption) => `      <div class="trip-sort__item  trip-sort__item--${sortOption.type}" data-sort-type="${sortOption.type}">
-        <input id="sort-${sortOption.type}" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="${sortOption.type}"${sortOption.isChecked ? ' checked' : ''}${sortOption.isDisabled ? ' disabled' : ''}>
-        <label class="trip-sort__btn" for="sort-${sortOption.type}">${sortOption.label}</label>
+${sortOptions.map((sortOption) => `      <div class="trip-sort__item  trip-sort__item--${escapeHtml(sortOption.type)}" data-sort-type="${escapeHtml(sortOption.type)}">
+        <input id="sort-${escapeHtml(sortOption.type)}" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="${escapeHtml(sortOption.type)}"${sortOption.isChecked ? ' checked' : ''}${sortOption.isDisabled ? ' disabled' : ''}>
+        <label class="trip-sort__btn" for="sort-${escapeHtml(sortOption.type)}">${escapeHtml(sortOption.label)}</label>
       </div>`).join('\n')}
     </form>`
   );
@@ -38,6 +39,11 @@ export default class SortView extends View {
     }
 
     return element;
+  }
+
+  removeElement() {
+    super.removeElement();
+    this.#listenerAttached = false;
   }
 
   #handleSortTypeClick = (event) => {

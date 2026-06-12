@@ -5,18 +5,10 @@ import {
   adaptPointFromServer,
   adaptPointToServer,
 } from './adapters.js';
-
-const FILTER_TYPES = [
-  { type: 'everything', label: 'Everything' },
-  { type: 'future', label: 'Future' },
-  { type: 'present', label: 'Present' },
-  { type: 'past', label: 'Past' },
-];
-
-const DEFAULT_FILTER = 'everything';
+import { DEFAULT_FILTER, FILTER_TYPE_LIST, FilterLabel, FilterType } from '../const/filter-type.js';
 
 function getFilterCount(points, type) {
-  if (type === 'everything') {
+  if (type === FilterType.EVERYTHING) {
     return points.length;
   }
 
@@ -25,11 +17,11 @@ function getFilterCount(points, type) {
   return points.filter((point) => {
     const pointDate = dayjs(point.dateFrom);
 
-    if (type === 'future') {
+    if (type === FilterType.FUTURE) {
       return pointDate.isAfter(now, 'day');
     }
 
-    if (type === 'present') {
+    if (type === FilterType.PRESENT) {
       return pointDate.isSame(now, 'day');
     }
 
@@ -38,15 +30,15 @@ function getFilterCount(points, type) {
 }
 
 function getFilteredPoints(points, filter) {
-  if (filter === 'future') {
+  if (filter === FilterType.FUTURE) {
     return points.filter((point) => dayjs(point.dateFrom).isAfter(dayjs(), 'day'));
   }
 
-  if (filter === 'present') {
+  if (filter === FilterType.PRESENT) {
     return points.filter((point) => dayjs(point.dateFrom).isSame(dayjs(), 'day'));
   }
 
-  if (filter === 'past') {
+  if (filter === FilterType.PAST) {
     return points.filter((point) => dayjs(point.dateFrom).isBefore(dayjs(), 'day'));
   }
 
@@ -54,8 +46,6 @@ function getFilteredPoints(points, filter) {
 }
 
 export default class Model {
-  #observers = [];
-
   #apiService = null;
 
   constructor(apiService) {
@@ -64,14 +54,6 @@ export default class Model {
     this.destinations = [];
     this.offers = [];
     this.points = [];
-  }
-
-  addObserver(observer) {
-    this.#observers.push(observer);
-  }
-
-  #notify() {
-    this.#observers.forEach((observer) => observer());
   }
 
   async init() {
@@ -107,12 +89,12 @@ export default class Model {
   }
 
   getFilters(activeFilter = DEFAULT_FILTER) {
-    return FILTER_TYPES.map(({ type, label }) => {
+    return FILTER_TYPE_LIST.map((type) => {
       const count = getFilterCount(this.points, type);
 
       return {
         type,
-        label,
+        label: FilterLabel[type],
         count,
         isChecked: type === activeFilter,
         isDisabled: count === 0,
@@ -126,7 +108,6 @@ export default class Model {
 
   setPoints(points) {
     this.points = points;
-    this.#notify();
   }
 
   async updatePoint(updatedPoint) {

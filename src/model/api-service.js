@@ -1,3 +1,5 @@
+import HttpStatus from '../const/http-status.js';
+
 const HTTP_METHOD = {
   GET: 'GET',
   POST: 'POST',
@@ -67,7 +69,7 @@ export default class ApiService {
       throw new Error(`Request failed: ${response.status} ${response.statusText}`);
     }
 
-    if (response.status === 204) {
+    if (response.status === HttpStatus.NO_CONTENT) {
       return null;
     }
 

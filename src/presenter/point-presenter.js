@@ -2,6 +2,7 @@ import PointView from '../view/point-view.js';
 import PointEditView from '../view/point-edit-view.js';
 import { render } from '../render.js';
 import UserAction from './user-action.js';
+import KeyboardKey from '../const/keyboard-key.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -80,24 +81,6 @@ export default class PointPresenter {
     this.#closeEditForm();
   }
 
-  updatePoint(updatedPoint) {
-    this.#point = updatedPoint;
-
-    const prevPointViewElement = this.#pointView.getElement();
-    this.#pointView.removeElement();
-    this.#pointView = new PointView({
-      point: this.#point,
-      destination: this.#destination,
-      offers: this.#offers,
-      onFavoriteClick: this.#handleFavoriteClick,
-      onRollupClick: this.#handlePointClick,
-    });
-
-    if (this.#mode === Mode.DEFAULT) {
-      prevPointViewElement.replaceWith(this.#pointView.getElement());
-    }
-  }
-
   #handlePointClick = () => {
     this.#onModeChange();
     this.#replacePointViewWithEditView();
@@ -149,7 +132,7 @@ export default class PointPresenter {
   };
 
   #handleEditFormKeyDown = (event) => {
-    if (event.key !== 'Escape') {
+    if (event.key !== KeyboardKey.ESCAPE) {
       return;
     }
 

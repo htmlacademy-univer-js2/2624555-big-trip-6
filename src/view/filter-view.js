@@ -1,11 +1,12 @@
 import View from './view.js';
+import { escapeHtml } from '../utils/text-utils.js';
 
 function createFilterTemplate(filters) {
   return (
     `<form class="trip-filters" action="#" method="get">
 ${filters.map((filter) => `      <div class="trip-filters__filter">
-        <input id="filter-${filter.type}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${filter.type}"${filter.isChecked ? ' checked' : ''}${filter.isDisabled ? ' disabled' : ''}>
-        <label class="trip-filters__filter-label" for="filter-${filter.type}">${filter.label}</label>
+        <input id="filter-${escapeHtml(filter.type)}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${escapeHtml(filter.type)}"${filter.isChecked ? ' checked' : ''}${filter.isDisabled ? ' disabled' : ''}>
+        <label class="trip-filters__filter-label" for="filter-${escapeHtml(filter.type)}">${escapeHtml(filter.label)}</label>
       </div>`).join('\n')}
       <button class="visually-hidden" type="submit">Accept filter</button>
     </form>`
@@ -16,6 +17,8 @@ export default class FilterView extends View {
   #changeHandler = null;
 
   #onFilterChange = null;
+
+  #listenerAttached = false;
 
   constructor({ filters, onFilterChange = () => {} } = {}) {
     super();
@@ -28,8 +31,20 @@ export default class FilterView extends View {
     return createFilterTemplate(this.filters);
   }
 
-  _restoreHandlers() {
-    this._element.addEventListener('click', this.#changeHandler);
+  getElement() {
+    const element = super.getElement();
+
+    if (!this.#listenerAttached) {
+      element.addEventListener('click', this.#changeHandler);
+      this.#listenerAttached = true;
+    }
+
+    return element;
+  }
+
+  removeElement() {
+    super.removeElement();
+    this.#listenerAttached = false;
   }
 
   #handleChange = (event) => {
